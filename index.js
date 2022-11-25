@@ -20,6 +20,7 @@ async function run() {
     try {
         await client.connect();
         const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
+        const courseCollection = client.db("arafat_accounting").collection("course");
 
         // get all free class
         app.get('/freeclass', async (req, res) => {
@@ -34,6 +35,22 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const question = await freeQuestionCollection.findOne(query);
             res.send(question);
+        })
+
+        // get all course
+        app.get('/course', async (req, res) => {
+            const query = {};
+            const cursor = courseCollection.find(query);
+            const course = await cursor.toArray();
+            res.send(course);
+        })
+
+        // get a single question for exam
+        app.get('/course/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const course = await courseCollection.findOne(query);
+            res.send(course);
         })
 
     } finally {
