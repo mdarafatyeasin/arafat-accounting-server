@@ -43,9 +43,15 @@ async function run() {
 
         app.post('/quiz', async (req, res) => {
             const question = req.body;
-            const result = await questionCollection.insertOne(question);
+            const result = await freeQuestionCollection.insertOne(question);
             res.send(result);
         })
+
+        // app.post('/quiz', async (req, res) => {
+        //     const question = req.body;
+        //     const result = await questionCollection.insertOne(question);
+        //     res.send(result);
+        // })
 
         // get all course
         app.get('/course', async (req, res) => {
