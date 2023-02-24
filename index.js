@@ -22,7 +22,7 @@ async function run() {
         const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
         const usersCollection = client.db("arafat_accounting").collection("users");
-        const questionCollection = client.db("arafat_accounting").collection("questions")
+        // const questionCollection = client.db("arafat_accounting").collection("questions")
 
 
 
