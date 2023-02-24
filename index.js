@@ -21,6 +21,10 @@ async function run() {
         await client.connect();
         const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
+        const usersCollection = client.db("arafat_accounting").collection("users");
+        const questionCollection = client.db("arafat_accounting").collection("questions")
+
+
 
         // get all free class
         app.get('/freeclass', async (req, res) => {
@@ -37,6 +41,12 @@ async function run() {
             res.send(question);
         })
 
+        app.post('/quiz', async (req, res) => {
+            const question = req.body;
+            const result = await questionCollection.insertOne(question);
+            res.send(result);
+        })
+
         // get all course
         app.get('/course', async (req, res) => {
             const query = {};
@@ -51,6 +61,13 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const course = await courseCollection.findOne(query);
             res.send(course);
+        })
+        // post users
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            console.log(user)
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
         })
 
     } finally {
