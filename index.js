@@ -22,9 +22,8 @@ async function run() {
         const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
         const usersCollection = client.db("arafat_accounting").collection("users");
-        // const questionCollection = client.db("arafat_accounting").collection("questions")
-        const classCollection = clint.db("arafat_accounting").collection("allClass")
-
+        const nasaCollection = client.db("arafat_accounting").collection("nasa")
+        
 
         // get all free class
         app.get('/freeclass', async (req, res) => {
@@ -54,12 +53,7 @@ async function run() {
         // })
 
 
-        // post all class
-        // app.post('/allClass', async (req, res) => {
-        //     const uploadedClass = req.body;
-        //     const result = await classCollection.insertOne(uploadedClass);
-        //     res.send(result);
-        // })
+       
 
         // get all course
         app.get('/course', async (req, res) => {
