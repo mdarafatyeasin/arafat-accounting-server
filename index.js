@@ -21,10 +21,10 @@ async function run() {
         await client.connect();
         const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
-        const usersCollection = client.db("arafat_accounting").collection("users");
-        const nasaCollection = client.db("arafat_accounting").collection("nasa")
+        const classCollection = client.db("arafat_accounting").collection("classes")
         
 
+        // =============================================GET==============================
         // get all free class
         app.get('/freeclass', async (req, res) => {
             const query = {};
@@ -32,28 +32,14 @@ async function run() {
             const freeclass = await cursor.toArray();
             res.send(freeclass);
         })
-        // get a single question for exam
-        app.get('/freeclass/:id', async (req, res) => {
+
+         // get a single question for exam
+         app.get('/freeclass/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const question = await freeQuestionCollection.findOne(query);
             res.send(question);
         })
-
-        app.post('/quiz', async (req, res) => {
-            const question = req.body;
-            const result = await freeQuestionCollection.insertOne(question);
-            res.send(result);
-        })
-
-        // app.post('/quiz', async (req, res) => {
-        //     const question = req.body;
-        //     const result = await questionCollection.insertOne(question);
-        //     res.send(result);
-        // })
-
-
-       
 
         // get all course
         app.get('/course', async (req, res) => {
@@ -70,14 +56,44 @@ async function run() {
             const course = await courseCollection.findOne(query);
             res.send(course);
         })
-        // post users
-        app.post('/users', async (req, res) => {
-            const user = req.body;
-            console.log(user)
-            const result = await usersCollection.insertOne(user);
+
+         // get all classes
+         app.get('/materials', async (req, res) => {
+            const query = {};
+            const cursor = classCollection.find(query);
+            const materials = await cursor.toArray();
+            res.send(materials);
+        })
+
+        // =============================================POST==============================
+
+        // Input quiz
+        app.post('/quiz', async (req, res) => {
+            const question = req.body;
+            const result = await freeQuestionCollection.insertOne(question);
+            res.send(result);
+        })
+        
+        // Input class
+        app.post('/allclass', async (req, res) => {
+            const asset = req.body;
+            const result = await classCollection.insertOne(asset);
             res.send(result);
         })
 
+
+        // =============================================DELETE==============================
+        // =============================================PUT==============================
+        
+
+// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+        // app.post('/quiz', async (req, res) => {
+        //     const question = req.body;
+        //     const result = await questionCollection.insertOne(question);
+        //     res.send(result);
+        // })
+ 
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
@@ -87,9 +103,6 @@ async function run() {
 
 // function for catch error
 run().catch(console.dir);
-
-
-
 
 // for server check 
 app.get('/', (req, res) => {
