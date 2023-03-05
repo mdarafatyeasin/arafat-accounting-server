@@ -19,27 +19,45 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         await client.connect();
-        const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
+        // const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
         const classCollection = client.db("arafat_accounting").collection("classes")
+        const questionCollection = client.db("arafat_accounting").collection("questions")
         
 
         // =============================================GET==============================
         // get all free class
-        app.get('/freeclass', async (req, res) => {
+        app.get('/quiz', async (req, res) => {
             const query = {};
-            const cursor = freeQuestionCollection.find(query);
-            const freeclass = await cursor.toArray();
-            res.send(freeclass);
+            const cursor = questionCollection.find(query);
+            const quiz = await cursor.toArray();
+            res.send(quiz);
         })
 
          // get a single question for exam
-         app.get('/freeclass/:id', async (req, res) => {
+         app.get('/quiz/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const question = await freeQuestionCollection.findOne(query);
-            res.send(question);
+            const allquestions = await questionCollection.findOne(query);
+            res.send(allquestions);
         })
+
+        
+        // // get all free class
+        // app.get('/freeclass', async (req, res) => {
+        //     const query = {};
+        //     const cursor = freeQuestionCollection.find(query);
+        //     const freeclass = await cursor.toArray();
+        //     res.send(freeclass);
+        // })
+
+        //  // get a single question for exam
+        //  app.get('/freeclass/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const question = await freeQuestionCollection.findOne(query);
+        //     res.send(question);
+        // })
 
         // get all course
         app.get('/course', async (req, res) => {
@@ -65,12 +83,29 @@ async function run() {
             res.send(materials);
         })
 
+        // get a single class  for exam
+        app.get('/materials/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await classCollection.findOne(query);
+            res.send(result);
+        })
+
+
+        // get all free class
+        app.get('/quiz', async (req, res) => {
+            const query = {};
+            const cursor = questionCollection.find(query);
+            const quiz = await cursor.toArray();
+            res.send(quiz);
+        })
+
         // =============================================POST==============================
 
         // Input quiz
         app.post('/quiz', async (req, res) => {
             const question = req.body;
-            const result = await freeQuestionCollection.insertOne(question);
+            const result = await questionCollection.insertOne(question);
             res.send(result);
         })
         
