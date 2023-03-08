@@ -21,9 +21,11 @@ async function run() {
         await client.connect();
         // const freeQuestionCollection = client.db("arafat_accounting").collection("freeQuestion");
         const courseCollection = client.db("arafat_accounting").collection("course");
-        const classCollection = client.db("arafat_accounting").collection("classes")
-        const questionCollection = client.db("arafat_accounting").collection("questions")
-        
+        const classCollection = client.db("arafat_accounting").collection("classes");
+        const questionCollection = client.db("arafat_accounting").collection("questions");
+        const usersCollection = client.db("arafat_accounting").collection("users");
+
+
 
         // =============================================GET==============================
         // get all free class
@@ -34,15 +36,15 @@ async function run() {
             res.send(quiz);
         })
 
-         // get a single question for exam
-         app.get('/quiz/:id', async (req, res) => {
+        // get a single question for exam
+        app.get('/quiz/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const allquestions = await questionCollection.findOne(query);
             res.send(allquestions);
         })
 
-        
+
         // // get all free class
         // app.get('/freeclass', async (req, res) => {
         //     const query = {};
@@ -75,8 +77,8 @@ async function run() {
             res.send(course);
         })
 
-         // get all classes
-         app.get('/materials', async (req, res) => {
+        // get all classes
+        app.get('/materials', async (req, res) => {
             const query = {};
             const cursor = classCollection.find(query);
             const materials = await cursor.toArray();
@@ -108,7 +110,7 @@ async function run() {
             const result = await questionCollection.insertOne(question);
             res.send(result);
         })
-        
+
         // Input class
         app.post('/allclass', async (req, res) => {
             const asset = req.body;
@@ -117,18 +119,30 @@ async function run() {
         })
 
 
+
         // =============================================DELETE==============================
         // =============================================PUT==============================
-        
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result= await usersCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
 
-// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+        // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
         // app.post('/quiz', async (req, res) => {
         //     const question = req.body;
         //     const result = await questionCollection.insertOne(question);
         //     res.send(result);
         // })
- 
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
