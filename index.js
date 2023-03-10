@@ -4,6 +4,7 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 
 app.use(cors());
 app.use(express.json());
@@ -13,6 +14,26 @@ app.use(express.json());
 // MongoDB connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.wptsbja.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader)
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorize access' })
+    }
+    const token = authHeader.split(' ')[1];
+    // console.log(token)
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        req.decoded = decoded;
+        next()
+        // console.log(decoded.email)
+    })
+}
+
 
 // node mongo card operation
 // function start
@@ -24,16 +45,24 @@ async function run() {
         const classCollection = client.db("arafat_accounting").collection("classes");
         const questionCollection = client.db("arafat_accounting").collection("questions");
         const usersCollection = client.db("arafat_accounting").collection("users");
+        const requestCollection = client.db("arafat_accounting").collection("requester");
+        
 
 
 
         // =============================================GET==============================
         // get all free class
-        app.get('/quiz', async (req, res) => {
-            const query = {};
-            const cursor = questionCollection.find(query);
-            const quiz = await cursor.toArray();
-            res.send(quiz);
+        app.get('/quiz/:email', verifyJWT, async (req, res) => {
+            const user = req.params.email
+            const decodedEmail = req.decoded.email
+            if (user === decodedEmail) {
+                const query = {};
+                // const cursor = questionCollection.find(query);
+                const quiz = await questionCollection.find(query).toArray();
+                return res.send(quiz);
+            } else {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
         })
 
         // get a single question for exam
@@ -43,23 +72,6 @@ async function run() {
             const allquestions = await questionCollection.findOne(query);
             res.send(allquestions);
         })
-
-
-        // // get all free class
-        // app.get('/freeclass', async (req, res) => {
-        //     const query = {};
-        //     const cursor = freeQuestionCollection.find(query);
-        //     const freeclass = await cursor.toArray();
-        //     res.send(freeclass);
-        // })
-
-        //  // get a single question for exam
-        //  app.get('/freeclass/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: ObjectId(id) };
-        //     const question = await freeQuestionCollection.findOne(query);
-        //     res.send(question);
-        // })
 
         // get all course
         app.get('/course', async (req, res) => {
@@ -78,11 +90,18 @@ async function run() {
         })
 
         // get all classes
-        app.get('/materials', async (req, res) => {
-            const query = {};
-            const cursor = classCollection.find(query);
-            const materials = await cursor.toArray();
-            res.send(materials);
+        app.get('/materials/:email', verifyJWT, async (req, res) => {
+            const user = req.params.email
+            const decodedEmail = req.decoded.email
+            // console.log(user, decodedEmail)
+            if (decodedEmail === user) {
+                const query = {};
+                // const cursor = classCollection.find(query);
+                const materials = await classCollection.find(query).toArray();
+                return res.send(materials);
+            } else {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
         })
 
         // get a single class  for exam
@@ -93,13 +112,35 @@ async function run() {
             res.send(result);
         })
 
+        // get all users
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const users = await usersCollection.find(query).toArray();
+            res.send(users)
+        })
 
         // get all free class
-        app.get('/quiz', async (req, res) => {
+        // app.get('/quiz', async (req, res) => {
+        //     const query = {};
+        //     const cursor = questionCollection.find(query);
+        //     const quiz = await cursor.toArray();
+        //     res.send(quiz);
+        // })
+
+        // admin access admin 
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await usersCollection.findOne({ email: email })
+            const isAdmin = user.role === 'admin';
+            res.send(isAdmin)
+        })
+
+        // get all course
+        app.get('/request', verifyJWT, async (req, res) => {
             const query = {};
-            const cursor = questionCollection.find(query);
-            const quiz = await cursor.toArray();
-            res.send(quiz);
+            const cursor = requestCollection.find(query);
+            const request = await cursor.toArray();
+            res.send(request);
         })
 
         // =============================================POST==============================
@@ -118,6 +159,12 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/requester', async (req, res) => {
+            const requester = req.body;
+            const result = await requestCollection.insertOne(requester);
+            res.send(result);
+        })
+
 
 
         // =============================================DELETE==============================
@@ -130,8 +177,26 @@ async function run() {
             const updateDoc = {
                 $set: user,
             };
-            const result= await usersCollection.updateOne(filter, updateDoc, options);
-            res.send(result);
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '72h' })
+            res.send({ result, token });
+        })
+
+
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const requester = req.decoded.email;
+            const requesterAccount = usersCollection.findOne({ email: requester })
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'admin' }
+                };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } else {
+                res.status(403).send({ message: 'forbidden' })
+            }
         })
 
 
