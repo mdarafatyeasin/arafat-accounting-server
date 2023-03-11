@@ -61,6 +61,7 @@ async function run() {
                 const quiz = await questionCollection.find(query).toArray();
                 return res.send(quiz);
             } else {
+                console.log('function theka')
                 return res.status(403).send({ message: 'forbidden access' })
             }
         })
@@ -186,7 +187,7 @@ async function run() {
         app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const requester = req.decoded.email;
-            const requesterAccount = usersCollection.findOne({ email: requester })
+            const requesterAccount =await usersCollection.findOne({ email: requester })
             if (requesterAccount.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
@@ -196,6 +197,7 @@ async function run() {
                 res.send(result);
             } else {
                 res.status(403).send({ message: 'forbidden' })
+                console.log('function theka')
             }
         })
 
