@@ -46,28 +46,35 @@ async function run() {
         const questionCollection = client.db("arafat_accounting").collection("questions");
         const usersCollection = client.db("arafat_accounting").collection("users");
         const requestCollection = client.db("arafat_accounting").collection("requester");
-        
+
 
 
 
         // =============================================GET==============================
         // get all free class
-        app.get('/quiz/:email', verifyJWT, async (req, res) => {
-            const user = req.params.email
-            const decodedEmail = req.decoded.email
-            if (user === decodedEmail) {
+        // app.get('/quiz/:email', verifyJWT, async (req, res) => {
+        //     const user = req.params.email
+        //     const decodedEmail = req.decoded.email
+        //     if (user === decodedEmail) {
+        //         const query = {};
+        //         // const cursor = questionCollection.find(query);
+        //         const quiz = await questionCollection.find(query).toArray();
+        //         return res.send(quiz);
+        //     } else {
+        //         console.log('function theka')
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        // })
+        // get all free class
+        app.get('/quiz', async (req, res) => {
                 const query = {};
                 // const cursor = questionCollection.find(query);
                 const quiz = await questionCollection.find(query).toArray();
                 return res.send(quiz);
-            } else {
-                console.log('function theka')
-                return res.status(403).send({ message: 'forbidden access' })
-            }
         })
 
         // get a single question for exam
-        app.get('/quiz/:id', async (req, res) => {
+        app.get('/quiz/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const allquestions = await questionCollection.findOne(query);
@@ -183,11 +190,11 @@ async function run() {
             res.send({ result, token });
         })
 
-
+        // make admin
         app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const requester = req.decoded.email;
-            const requesterAccount =await usersCollection.findOne({ email: requester })
+            const requesterAccount = await usersCollection.findOne({ email: requester })
             if (requesterAccount.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
@@ -198,6 +205,47 @@ async function run() {
             } else {
                 res.status(403).send({ message: 'forbidden' })
                 console.log('function theka')
+            }
+        })
+
+        // make uv-23
+        // app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
+        //     const email = req.params.email;
+        //     // console.log('params', email)
+        //     const requester = req.decoded.email;
+        //     // console.log('requester', requester)
+        //     const requesterAccount = await requestCollection.findOne({ email: requester })
+        //     console.log('req', requesterAccount)
+        //     const admin = await usersCollection.findOne({ email: requester })
+        //     if (admin.role === 'admin') {
+        //         const filter = { email: email };
+        //         const updateDoc = {
+        //             $set: { role: 'uv23' }
+        //         };
+        //         const result = await requestCollection.updateOne(filter, updateDoc);
+        //         res.send(result);
+        //     } else {
+        //         res.status(403).send({ message: 'forbidden' })
+        //     }
+        // })
+        // make uv-23
+        app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            console.log('params', email)
+            const requester = req.decoded.email;
+            console.log('requester', requester)
+            const requesterAccount = await requestCollection.findOne({ email: requester })
+            console.log('req', requesterAccount)
+            const admin = await usersCollection.findOne({ email: requester })
+            if (admin.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'uv23' }
+                };
+                const result = await requestCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } else {
+                res.status(403).send({ message: 'forbidden' })
             }
         })
 
