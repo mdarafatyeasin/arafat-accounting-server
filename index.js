@@ -151,6 +151,14 @@ async function run() {
             res.send(request);
         })
 
+        // admin access admin 
+        app.get('/uv23/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await requestCollection.findOne({ email: email })
+            const isUv23 = user.role === 'uv23';
+            res.send(isUv23)
+        })
+
         // =============================================POST==============================
 
         // Input quiz
