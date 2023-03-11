@@ -74,7 +74,7 @@ async function run() {
         })
 
         // get a single question for exam
-        app.get('/quiz/:id', verifyJWT, async (req, res) => {
+        app.get('/quiz/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const allquestions = await questionCollection.findOne(query);
