@@ -67,10 +67,10 @@ async function run() {
         // })
         // get all free class
         app.get('/quiz', async (req, res) => {
-                const query = {};
-                // const cursor = questionCollection.find(query);
-                const quiz = await questionCollection.find(query).toArray();
-                return res.send(quiz);
+            const query = {};
+            // const cursor = questionCollection.find(query);
+            const quiz = await questionCollection.find(query).toArray();
+            return res.send(quiz);
         })
 
         // get a single question for exam
@@ -154,9 +154,21 @@ async function run() {
         // admin access admin 
         app.get('/uv23/:email', async (req, res) => {
             const email = req.params.email;
+            // console.log("param", email)
             const user = await requestCollection.findOne({ email: email })
-            const isUv23 = user.role === 'uv23';
-            res.send(isUv23)
+            // console.log('result', user)
+            // res.send(user)
+            // const isUv23 = user.role === 'uv23';
+            if (user !== null) {
+                const isUv23 = user.role === 'uv23';
+                res.send(isUv23)
+            } else {
+                // console.log(isUv23)
+                // res.status(404).send({ message: 'data not found' })
+                res.send(false)
+            }
+            // const isUv23 = user.role === 'uv23';
+            // res.send(isUv23)
         })
 
         // =============================================POST==============================
