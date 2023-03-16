@@ -196,6 +196,21 @@ async function run() {
 
 
         // =============================================DELETE==============================
+        app.delete('/request/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+            const query = { _id: ObjectId(id) }
+            const result = await requestCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(query)
+            res.send(result)
+        })
+
         // =============================================PUT==============================
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
