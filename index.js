@@ -171,6 +171,13 @@ async function run() {
             // res.send(isUv23)
         })
 
+        app.get('/singleRequester/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await requestCollection.findOne(query);
+            res.send(result);
+        })
+
         // =============================================POST==============================
 
         // Input quiz
@@ -264,18 +271,21 @@ async function run() {
         //     }
         // })
         // make uv-23
+
+
         app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            console.log('params', email)
-            const requester = req.decoded.email;
-            console.log('requester', requester)
-            const requesterAccount = await requestCollection.findOne({ email: requester })
-            console.log('req', requesterAccount)
-            const admin = await usersCollection.findOne({ email: requester })
+            const currentlyAdmin = req.decoded.email;
+            // const data = req.body
+            // console.log(data)
+            // const setRole = req.body;
+            // console.log(setRole)
+            // res.send(setRole)
+            const admin = await usersCollection.findOne({ email: currentlyAdmin })
             if (admin.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
-                    $set: { role: 'uv23' }
+                    $set: req.body
                 };
                 const result = await requestCollection.updateOne(filter, updateDoc);
                 res.send(result);
