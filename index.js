@@ -171,6 +171,19 @@ async function run() {
             // res.send(isUv23)
         })
 
+        app.get('/roles/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await requestCollection.findOne({ email: email })
+            // const userRole = await user.role
+            if (user !== null) {
+                res.send(user)
+            } else {
+                // console.log(userRole)
+                res.status(401).send({ message: 'Unauthorize access' })
+                // res.send('Unauthorize')
+            }
+        })
+
         app.get('/singleRequester/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -249,6 +262,27 @@ async function run() {
                 console.log('function theka')
             }
         })
+        app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const currentlyAdmin = req.decoded.email;
+            // const data = req.body
+            // console.log(data)
+            // const setRole = req.body;
+            // console.log(setRole)
+            // res.send(setRole)
+            const admin = await usersCollection.findOne({ email: currentlyAdmin })
+            if (admin.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: req.body
+                };
+                const result = await requestCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } else {
+                res.status(403).send({ message: 'forbidden' })
+            }
+        })
 
         // make uv-23
         // app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
@@ -273,26 +307,7 @@ async function run() {
         // make uv-23
 
 
-        app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
-            const email = req.params.email;
-            const currentlyAdmin = req.decoded.email;
-            // const data = req.body
-            // console.log(data)
-            // const setRole = req.body;
-            // console.log(setRole)
-            // res.send(setRole)
-            const admin = await usersCollection.findOne({ email: currentlyAdmin })
-            if (admin.role === 'admin') {
-                const filter = { email: email };
-                const updateDoc = {
-                    $set: req.body
-                };
-                const result = await requestCollection.updateOne(filter, updateDoc);
-                res.send(result);
-            } else {
-                res.status(403).send({ message: 'forbidden' })
-            }
-        })
+
 
 
         // \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
