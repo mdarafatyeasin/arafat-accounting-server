@@ -98,19 +98,66 @@ async function run() {
         })
 
         // get all classes
-        app.get('/materials/:email', verifyJWT, async (req, res) => {
-            const user = req.params.email
-            const decodedEmail = req.decoded.email
-            // console.log(user, decodedEmail)
-            if (decodedEmail === user) {
-                const query = {};
-                // const cursor = classCollection.find(query);
-                const materials = await classCollection.find(query).toArray();
-                return res.send(materials);
+        // app.get('/materials/:email', verifyJWT, async (req, res) => {
+        //     const user = req.params.email
+        //     const decodedEmail = req.decoded.email
+        //     // console.log(user, decodedEmail)
+        //     if (decodedEmail === user) {
+        //         const query = {};
+        //         // const cursor = classCollection.find(query);
+        //         const materials = await classCollection.find(query).toArray();
+        //         return res.send(materials);
+        //     } else {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        // })
+
+
+
+
+
+
+
+
+
+
+        app.get('/materials/:email', async (req, res) => {
+            const studentEmail = req.params.email
+            const user = await requestCollection.findOne({ email: studentEmail })
+            const userRole = await user.role
+
+            if (userRole === 'cUAdmission') {
+                const query = await { standard: "cUAdmission" };
+                const userClass = await classCollection.find(query).toArray();
+                res.send(userClass)
+            }
+            else if (userRole === 'uv23') {
+                const query = await { standard: "cUAdmission" };
+                const userClass = await classCollection.find(query).toArray();
+                res.send(userClass)
             } else {
                 return res.status(403).send({ message: 'forbidden access' })
             }
+
+            // const materials = await classCollection.find(query).toArray();
+            // return res.send(materials);
+            // console.log(userRole)
+
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // get a single class  for exam
         app.get('/materials/:id', async (req, res) => {
@@ -218,7 +265,7 @@ async function run() {
         // =============================================DELETE==============================
         app.delete('/request/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id)
+            // console.log(id)
             const query = { _id: ObjectId(id) }
             const result = await requestCollection.deleteOne(query)
             res.send(result)
@@ -259,12 +306,12 @@ async function run() {
                 res.send(result);
             } else {
                 res.status(403).send({ message: 'forbidden' })
-                console.log('function theka')
+                // console.log('function theka')
             }
         })
         app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            console.log(email)
+            // console.log(email)
             const currentlyAdmin = req.decoded.email;
             // const data = req.body
             // console.log(data)
