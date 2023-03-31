@@ -29,23 +29,23 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-// function verifyJWT(req, res, next) {
-//     const authHeader = req.headers.authorization;
-//     // console.log(authHeader)
-//     if (!authHeader) {
-//         return res.status(401).send({ message: 'Unauthorize access' })
-//     }
-//     const token = authHeader.split(' ')[1];
-//     // console.log(token)
-//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-//         if (err) {
-//             return res.status(403).send({ message: 'Forbidden access' })
-//         }
-//         req.decoded = decoded;
-//         next()
-//         // console.log(decoded.email)
-//     })
-// }
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader)
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorize access' })
+    }
+    const token = authHeader.split(' ')[1];
+    // console.log(token)
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        req.decoded = decoded;
+        next()
+        // console.log(decoded.email)
+    })
+}
 
 
 // node mongo card operation
@@ -218,7 +218,7 @@ async function run() {
 
         // get all course
         app.get('/request',
-            // verifyJWT,
+            verifyJWT,
             async (req, res) => {
                 const query = {};
                 const cursor = requestCollection.find(query);
@@ -311,7 +311,7 @@ async function run() {
 
         // make admin
         app.put('/user/admin/:email',
-            // verifyJWT, 
+            verifyJWT, 
             async (req, res) => {
                 const email = req.params.email;
                 const requester = req.decoded.email;
@@ -329,7 +329,7 @@ async function run() {
                 }
             })
         app.put('/requester/uv23/:email',
-            // verifyJWT, 
+            verifyJWT, 
             async (req, res) => {
                 const email = req.params.email;
                 // console.log(email)
