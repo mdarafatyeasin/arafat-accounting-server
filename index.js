@@ -7,6 +7,19 @@ const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
 
 app.use(cors());
+// app.use(cors({
+//     origin: "https://test.arafataccountingzone.com/"
+// }));
+
+// app.use(cors({
+//     origin: ["https://test.arafataccountingzone.com/", "http://localhost:5000/"],
+//     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH']
+// }));
+
+
+
+
+// app.use(cors());
 app.use(express.json());
 
 
@@ -49,6 +62,19 @@ async function run() {
 
 
 
+        // issue token
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            const token = await jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ result, token });
+        })
 
         // =============================================GET==============================
         // get all free class
@@ -132,7 +158,7 @@ async function run() {
                 res.send(userClass)
             }
             else if (userRole === 'uv23') {
-                const query = await { standard: "cUAdmission" };
+                const query = await {};
                 const userClass = await classCollection.find(query).toArray();
                 res.send(userClass)
             } else {
@@ -191,12 +217,14 @@ async function run() {
         })
 
         // get all course
-        app.get('/request', verifyJWT, async (req, res) => {
-            const query = {};
-            const cursor = requestCollection.find(query);
-            const request = await cursor.toArray();
-            res.send(request);
-        })
+        app.get('/request',
+            verifyJWT,
+            async (req, res) => {
+                const query = {};
+                const cursor = requestCollection.find(query);
+                const request = await cursor.toArray();
+                res.send(request);
+            })
 
         // admin access admin 
         app.get('/uv23/:email', async (req, res) => {
@@ -279,57 +307,50 @@ async function run() {
         })
 
         // =============================================PUT==============================
-        app.put('/user/:email', async (req, res) => {
-            const email = req.params.email;
-            const user = req.body;
-            const filter = { email: email };
-            const options = { upsert: true };
-            const updateDoc = {
-                $set: user,
-            };
-            const result = await usersCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '72h' })
-            res.send({ result, token });
-        })
+
 
         // make admin
-        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
-            const email = req.params.email;
-            const requester = req.decoded.email;
-            const requesterAccount = await usersCollection.findOne({ email: requester })
-            if (requesterAccount.role === 'admin') {
-                const filter = { email: email };
-                const updateDoc = {
-                    $set: { role: 'admin' }
-                };
-                const result = await usersCollection.updateOne(filter, updateDoc);
-                res.send(result);
-            } else {
-                res.status(403).send({ message: 'forbidden' })
-                // console.log('function theka')
-            }
-        })
-        app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
-            const email = req.params.email;
-            // console.log(email)
-            const currentlyAdmin = req.decoded.email;
-            // const data = req.body
-            // console.log(data)
-            // const setRole = req.body;
-            // console.log(setRole)
-            // res.send(setRole)
-            const admin = await usersCollection.findOne({ email: currentlyAdmin })
-            if (admin.role === 'admin') {
-                const filter = { email: email };
-                const updateDoc = {
-                    $set: req.body
-                };
-                const result = await requestCollection.updateOne(filter, updateDoc);
-                res.send(result);
-            } else {
-                res.status(403).send({ message: 'forbidden' })
-            }
-        })
+        app.put('/user/admin/:email',
+            verifyJWT, 
+            async (req, res) => {
+                const email = req.params.email;
+                const requester = req.decoded.email;
+                const requesterAccount = await usersCollection.findOne({ email: requester })
+                if (requesterAccount.role === 'admin') {
+                    const filter = { email: email };
+                    const updateDoc = {
+                        $set: { role: 'admin' }
+                    };
+                    const result = await usersCollection.updateOne(filter, updateDoc);
+                    res.send(result);
+                } else {
+                    res.status(403).send({ message: 'forbidden' })
+                    // console.log('function theka')
+                }
+            })
+        app.put('/requester/uv23/:email',
+            verifyJWT, 
+            async (req, res) => {
+                const email = req.params.email;
+                // console.log(email)
+                const currentlyAdmin = req.decoded.email;
+                // const data = req.body
+                // console.log(data)
+                // const setRole = req.body;
+                // console.log(setRole)
+                // res.send(setRole)
+                const admin = await usersCollection.findOne({ email: currentlyAdmin })
+                if (admin.role === 'admin') {
+                    const filter = { email: email };
+                    const updateDoc = {
+                        $set: req.body
+                    };
+                    const result = await requestCollection.updateOne(filter, updateDoc);
+                    res.send(result);
+                } else {
+                    res.status(403).send({ message: 'forbidden' })
+                }
+            })
 
         // make uv-23
         // app.put('/requester/uv23/:email', verifyJWT, async (req, res) => {
